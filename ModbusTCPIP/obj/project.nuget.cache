@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "ReQs74pxsz8lUw0Qw7GiU5oIDo9qSMz2i3wEVILJuYlTII947mnctMJ0CVbHa5L/VbG57BWbtMxmNzrvd91RWw==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\r.rogala\\Projects\\ModbusTCPIP\\ModbusTCPIP\\ModbusTCPIP.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\r.rogala\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.19\\microsoft.windowsdesktop.app.ref.6.0.19.nupkg.sha512",
+    "C:\\Users\\r.rogala\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.19\\microsoft.netcore.app.ref.6.0.19.nupkg.sha512",
+    "C:\\Users\\r.rogala\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.19\\microsoft.aspnetcore.app.ref.6.0.19.nupkg.sha512"
+  ],
+  "logs": []
+}
