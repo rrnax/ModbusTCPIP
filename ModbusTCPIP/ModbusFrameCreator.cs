@@ -1,6 +1,6 @@
 ﻿namespace ModbusTCPIP
 {
-    public class ModBusCreator
+    public class ModBusFrameCreator
     {
         private static int transactionId = 0;
 
@@ -15,26 +15,40 @@
             //Selection to create correct data frame to send based on function code
             switch (functionId)
             {
+                case 1:
+                    Console.WriteLine("[Frame: function code 1 -> Read Coils]");
+                    dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 1);
+                    break;
+                case 2:
+                    Console.WriteLine("[Frame: function code 2 -> Read Discrete Inputs]");
+                    dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 2);
+                    break;
                 case 3:
                     Console.WriteLine("[Frame: function code 3 -> Read Holding Registers]");
-                    dataPDU = ReadingHoledingRegistersPDU(dataForFunction[0], dataForFunction[1]);
-                    dataMBAP = CreateMBAPHeader(unitId, dataPDU.Length);
+                    dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 3);
+                    break;
+                case 4:
+                    Console.WriteLine("[Frame: function code 4 -> Read Input Registers]");
+                    dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 4);
+                    break;
+                case 5:
+                    Console.WriteLine("[Frame: function code 5 -> Write Single Coil]");
+                    dataPDU = SingleWritingPDU(dataForFunction[0], dataForFunction[1], 5);
                     break;
                 case 6:
                     Console.WriteLine("[Frame: function code 6 -> Write Single Holding Register]");
-                    dataPDU = WritingHoldingRegisterPDU(dataForFunction[0], dataForFunction[1]);
-                    dataMBAP = CreateMBAPHeader(unitId, dataPDU.Length);
+                    dataPDU = SingleWritingPDU(dataForFunction[0], dataForFunction[1], 6);
                     break;
                 case 16:
                     Console.WriteLine("[Frame: function code 16 -> Write Holding Registers]");
                     int[] temp = new int[dataForFunction[1]];
                     Array.Copy(dataForFunction, 2, temp, 0, dataForFunction[1]);
-                    dataPDU = WritingMultipleHoldingRegistersPDU(dataForFunction[0], dataForFunction[1], temp);
-                    dataMBAP = CreateMBAPHeader(unitId, dataPDU.Length);
+                    dataPDU = MultipleWritingPDU(dataForFunction[0], dataForFunction[1], 16, temp);
                     break;
                 default:
                     throw new FrameException("Function " + functionId + " is not supported");
             }
+            dataMBAP = CreateMBAPHeader(unitId, dataPDU.Length);
             frame = dataMBAP.Concat(dataPDU).ToArray();
             return frame;
         }
@@ -48,7 +62,7 @@
         //                                            8 is length of registers;
         public static List<int> DecodeModbusFrame(byte[] responseModbusFrame)
         {
-            if (responseModbusFrame.Length < 7) throw new FrameException("Incorrect Modbus frame. Decode is not possible");
+            if (responseModbusFrame.Length < 7) throw new FrameException("Incorrect Modbus frame. Decode is not possible.");
             List<int> values = new List<int>();
             increaseTransactionId();
             int DataLength = CombineBytes(responseModbusFrame[4], responseModbusFrame[5]);
@@ -61,41 +75,52 @@
             return values;
         }
 
-        //Create Protocol Data unit for reading from holding registers 
-        public static byte[] ReadingHoledingRegistersPDU(int startRegister, int rangeOfRegisters)
+        //Create Protocol Data Unit For Reading Modbus Frames 
+        public static byte[] ReadingPDU(int startAddress, int range, int functionCode)
         {
+            if (functionCode == 1 || functionCode == 2)
+            {
+                if (range is > 2000 or < 1) throw new FrameException("Range must be between 1 and 2000.");
+            } else if (functionCode == 4)
+            {
+                if (range is > 125 or < 1) throw new FrameException("Range must be between 1 and 125 for inputs.");
+            }
+            if (startAddress + range is > 65535) throw new FrameException("Out of range.");
+
             byte[] data = new byte[5];
             byte[] temp;
 
-            //Convert Unit id and Function code to bytes
-            byte byteFunctionCode = Convert.ToByte(3);
+            //Convert function code to bytes
+            byte byteFunctionCode = Convert.ToByte(functionCode);
             data[0] = byteFunctionCode;
 
-            //Convert first register to read from int to bytes
-            temp = MakeModbusBytesConvention(startRegister);
+            //Convert first address to byte
+            temp = MakeModbusBytesConvention(startAddress);
             data[1] = temp[0];
             data[2] = temp[1];
 
-            //Convert range of reading holding registers
-            temp = MakeModbusBytesConvention(rangeOfRegisters);
+            //Convert range to bytes
+            temp = MakeModbusBytesConvention(range);
             data[3] = temp[0];
             data[4] = temp[1];
 
             return data;
         }
 
+       
         //Create Protocol Data Unit for write single holding register
-        public static byte[] WritingHoldingRegisterPDU(int registerAdress, int value)
+        public static byte[] SingleWritingPDU(int address, int value, int functionCode)
         {
+            if (functionCode == 5 && (value != 65280 && value != 0)) throw new FrameException("Only turn on or off is permited on coil.");
             byte[] data = new byte[5];
             byte[] temp;
 
-            //Convert Unit id and Function code to bytes
-            byte byteFunctionCode = Convert.ToByte(6);
+            //Convert Function code to bytes
+            byte byteFunctionCode = Convert.ToByte(functionCode);
             data[0] = byteFunctionCode;
 
-            //Convert register adress
-            temp = MakeModbusBytesConvention(registerAdress);
+            //Convert adress
+            temp = MakeModbusBytesConvention(address);
             data[1] = temp[0];
             data[2] = temp[1];
 
@@ -108,31 +133,51 @@
         }
 
         //Create Protocol Data Unit for write multiple holding register
-        public static byte[] WritingMultipleHoldingRegistersPDU(int startRegister, int rangeOfRegisters, int[] values)
+        public static byte[] MultipleWritingPDU(int startAddress, int range, int functionCode, int[] values)
         {
-            if (rangeOfRegisters != values.Length) throw new FrameException("Range must be the same as lenght of values array.");
-            byte[] data = new byte[2 * rangeOfRegisters + 6];
+            int amountBytesForCoils;
+            byte[] data;
             byte[] temp;
 
-            //Convert Unit id and Function code to bytes
-            byte byteFunctionCode = Convert.ToByte(16);
+            if (range != values.Length) throw new FrameException("Range must be the same as lenght of values array.");
+            if (functionCode == 15)
+            {
+                if (range > 1968) throw new FrameException("Range of write coils must be max 1968");
+                //Making correct amount of bytes for coils
+                if(range % 8 == 0)
+                {
+                    amountBytesForCoils = (int)(range / 8);
+                } else
+                {
+                    amountBytesForCoils = (int)(range / 8) + 1;
+                }
+                data = new byte[amountBytesForCoils + 6];
+                data[5] = Convert.ToByte(amountBytesForCoils);
+            } 
+            else
+            {
+                if (range > 123) throw new FrameException("Range of write registers must be max 123");
+                data = new byte[2 * range + 6];
+                //Correct amount of bytes for registers values 
+                data[5] = Convert.ToByte(range * 2);
+            }
+
+            //Convert Function code to bytes
+            byte byteFunctionCode = Convert.ToByte(functionCode);
             data[0] = byteFunctionCode;
 
-            //Convert register start adress 
-            temp = MakeModbusBytesConvention(startRegister);
+            //Convert start adress 
+            temp = MakeModbusBytesConvention(startAddress);
             data[1] = temp[0];
             data[2] = temp[1];
 
-            //Convert range of writing holding registers
-            temp = MakeModbusBytesConvention(rangeOfRegisters);
+            //Convert range
+            temp = MakeModbusBytesConvention(range);
             data[3] = temp[0];
             data[4] = temp[1];
 
-            //Bytes to send
-            data[5] = Convert.ToByte(rangeOfRegisters * 2);
-
             //Convert register values to write
-            for (int i = 6, j = 0; i < 2 * rangeOfRegisters + 5; i += 2, j++)
+            for (int i = 6, j = 0; i < 2 * range + 5; i += 2, j++)
             {
                 temp = MakeModbusBytesConvention(values[j]);
                 data[i] = temp[0];
@@ -220,16 +265,5 @@
 
         }
     }
-
-    public class FrameException : Exception
-    {
-        public string message { get; }
-
-        public FrameException(string message) : base(message)
-        {
-            this.message = message;
-        }
-    }
-
 
 }

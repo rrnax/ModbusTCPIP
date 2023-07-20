@@ -18,60 +18,101 @@ namespace TestModbusTCPIP
             int[] sampleData = { 1, 2 };
 
             //Act with Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateFrame(unitId, functionId, sampleData));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData));
         }
 
         [Test]
-        public void CheckBadScenarioForCase3()
+        public void CheckCase1()
         {
             //Asign
-            int functionId = 3;
-            int unitId = 1;
-            int[] sampleData = { 70000, 2 };
-
-            //Act with Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateFrame(unitId, functionId, sampleData));
-        }
-
-        [Test]
-        public void CheckGoodScenarioForCase3()
-        {
-            //Asign
-            int functionId = 3;
+            int functionId = 1;
             int unitId = 1;
             int[] sampleData = { 1, 300 };
-            byte[] expectedFrame = { 0, 1, 0, 0, 0, 6, 1, 3, 0, 1, 0x01, 0x2c };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 6, 1, 1, 0, 1, 0x01, 0x2c };
 
             //Act
-            byte[] actualFrame = ModBusCreator.CreateFrame(unitId, functionId, sampleData);
+            byte[] actualFrame = ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
 
             //Assert
             CollectionAssert.AreEqual(expectedFrame, actualFrame);
         }
 
         [Test]
-        public void CheckBadScenarioForCase6()
+        public void CheckCase2()
         {
             //Asign
-            int functionId = 6;
+            int functionId = 2;
             int unitId = 1;
-            int[] sampleData = { 70000, 70000 };
+            int[] sampleData = { 1, 300 };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 6, 1, 2, 0, 1, 0x01, 0x2c };
 
-            //Act with Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateFrame(unitId, functionId, sampleData));
+            //Act
+            byte[] actualFrame = ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
+
+            //Assert
+            CollectionAssert.AreEqual(expectedFrame, actualFrame);
         }
 
         [Test]
-        public void CheckGoodScenarioForCase6()
+        public void CheckCase3()
+        {
+            //Asign
+            int functionId = 3;
+            int unitId = 1;
+            int[] sampleData = { 1, 300 };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 6, 1, 3, 0, 1, 0x01, 0x2c };
+
+            //Act
+            byte[] actualFrame =  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
+
+            //Assert
+            CollectionAssert.AreEqual(expectedFrame, actualFrame);
+        }
+
+        [Test]
+        public void CheckCase4()
+        {
+            //Asign
+            int functionId = 4;
+            int unitId = 1;
+            int[] sampleData = { 1, 100 };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 6, 1, 4, 0, 1, 0, 100 };
+
+            //Act
+            byte[] actualFrame = ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
+
+            //Assert
+            CollectionAssert.AreEqual(expectedFrame, actualFrame);
+        }
+
+        [Test]
+        public void CheckCase5()
+        {
+            //Asign
+            int functionId = 5;
+            int unitId = 1;
+            int[] sampleData = { 1, 0 };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 6, 1, 5, 0, 1, 0, 0 };
+
+            //Act
+            byte[] actualFrame = ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
+
+            //Assert
+            CollectionAssert.AreEqual(expectedFrame, actualFrame);
+        }
+
+
+        [Test]
+        public void CheckCase6()
         {
             //Asign
             int functionId = 6;
             int unitId = 1;
             int[] sampleData = { 1, 300 };
-            byte[] expectedFrame = { 0, 1, 0, 0, 0, 6, 1, 6, 0, 1, 0x01, 0x2c };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 6, 1, 6, 0, 1, 0x01, 0x2c };
 
             //Act
-            byte[] actualFrame = ModBusCreator.CreateFrame(unitId, functionId, sampleData);
+            byte[] actualFrame =  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
 
             //Assert
             CollectionAssert.AreEqual(expectedFrame, actualFrame);
@@ -86,7 +127,7 @@ namespace TestModbusTCPIP
             int[] sampleData = { 1, 2, 70000, 333 };
 
             //Act with Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateFrame(unitId, functionId, sampleData));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData));
         }
 
         [Test]
@@ -99,7 +140,7 @@ namespace TestModbusTCPIP
             byte[] expectedFrame = { 0, 1, 0, 0, 0, 11, 1, 16, 0, 1, 0, 2, 4, 0x01, 0x2c, 0, 0x15 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.CreateFrame(unitId, functionId, sampleData);
+            byte[] actualFrame =  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
 
             //Assert
             CollectionAssert.AreEqual(expectedFrame, actualFrame);
@@ -114,7 +155,7 @@ namespace TestModbusTCPIP
             List<int> expected = new List<int> { 278, 33, 100, 10020, 99 };
 
             //Act
-            List<int> result = ModBusCreator.DecodeModbusFrame(frame);
+            List<int> result =  ModBusFrameCreator.DecodeModbusFrame(frame);
 
             //Asserts
             CollectionAssert.AreEqual(expected, result);
@@ -128,201 +169,110 @@ namespace TestModbusTCPIP
             List<int> expected = new List<int> { 278, 33, 100, 10020, 99 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.DecodeModbusFrame(frame));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.DecodeModbusFrame(frame));
         }
 
-        //PDU for Reading Holding Registers
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
+        //PDU for Reading
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
         [Test]
-        public void CheckPDUForReadHoldingRegisters_Correct_fullRange()
+        public void CheckPDURead_CorrectValues()
         {
             //Asign
-            int start = 1;
-            int range = 65535;
-            byte[] expectatedFrame = { 3, 0, 1, 0xff, 0xff };
+            int startCoil = 1;
+            int range = 2000;
+            int functionCode = 2;
+            byte[] expectedFrame = { 2, 0, 1, 0x07, 0xd0 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.ReadingHoledingRegistersPDU(start, range);
+            byte[] actualFrame = ModBusFrameCreator.ReadingPDU(startCoil, range, functionCode);
 
             //Assert
-            CollectionAssert.AreEqual(expectatedFrame, actualFrame);
-
+            CollectionAssert.AreEqual(expectedFrame, actualFrame);
         }
 
         [Test]
-        public void CheckPDUForReadHoldingRegisters_Correct_partRange()
+        public void CheckPDURead_RangeOver2000()
         {
             //Asign
-            int start = 1;
-            int range = 250;
-            byte[] expectatedFrame = { 3, 0, 1, 0, 0xfa };
-
-            //Act
-            byte[] actualFrame = ModBusCreator.ReadingHoledingRegistersPDU(start, range);
-
-            //Assert
-            CollectionAssert.AreEqual(expectatedFrame, actualFrame);
-
-        }
-
-        [Test]
-        public void CheckPDUForReadHoldingRegisters_Correct_singleRegister()
-        {
-            //Asign
-            int start = 1;
-            int range = 1;
-            byte[] expectatedFrame = { 3, 0, 1, 0, 1 };
-
-            //Act
-            byte[] actualFrame = ModBusCreator.ReadingHoledingRegistersPDU(start, range);
-
-            //Assert
-            CollectionAssert.AreEqual(expectatedFrame, actualFrame);
-
-        }
-
-        [Test]
-        public void CheckPDUForReadHoldingRegisters_inorrect_outOfRangeHigh()
-        {
-            //Asign
-            int start = 1;
-            int range = 70000;
+            int startCoil = 1;
+            int range = 2001;
+            int functionCode = 2;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.ReadingHoledingRegistersPDU(start, range));
-
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.ReadingPDU(startCoil, range, functionCode));
         }
 
         [Test]
-        public void CheckPDUForReadHoldingRegisters_incorrect_outOfRangLow()
+        public void CheckPDURead_RangeOver125AndFunctionCode4()
         {
             //Asign
-            int start = 1;
-            int range = -10;
+            int startCoil = 1;
+            int range = 160;
+            int functionCode = 4;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.ReadingHoledingRegistersPDU(start, range));
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.ReadingPDU(startCoil, range, functionCode));
         }
 
         [Test]
-        public void CheckPDUForReadHoldingRegisters_incorrect_startIdTooHigh()
+        public void CheckPDURead_RangeUnder1()
         {
             //Asign
-            int start = 70000;
-            int range = 20;
+            int startCoil = 1;
+            int range = 0;
+            int functionCode = 2;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.ReadingHoledingRegistersPDU(start, range));
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.ReadingPDU(startCoil, range, functionCode));
         }
+
 
         [Test]
-        public void CheckPDUForReadHoldingRegisters_incorrect_startIdTooLow()
+        public void CheckPDURead_SumOfRangeAndCoil()
         {
             //Asign
-            int start = -20;
-            int range = 20;
+            int startCoil = 65000;
+            int range = 2000;
+            int functionCode = 2;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.ReadingHoledingRegistersPDU(start, range));
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.ReadingPDU(startCoil, range, functionCode));
         }
 
-        //PDU for Writing Hoding Register
+
+      
+
+        //PDU for writing single
         //////////////////////////////////////////////////////////////////////////////////////////////////
         [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_Correct_maxValue()
+        public void CheckPDUWriteSingle_Correct()
         {
             //Asign
-            int register = 1;
+            int adress = 1;
             int value = 65535;
             byte[] expectatedFrame = { 6, 0, 1, 0xff, 0xff };
 
             //Act
-            byte[] actualFrame = ModBusCreator.WritingHoldingRegisterPDU(register, value);
+            byte[] actualFrame =  ModBusFrameCreator.SingleWritingPDU(adress, value, 6);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
 
         }
 
-        [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_Correct_lowValue()
-        {
-            //Asign
-            int register = 1;
-            int value = 1;
-            byte[] expectatedFrame = { 6, 0, 1, 0x00, 1 };
-
-            //Act
-            byte[] actualFrame = ModBusCreator.WritingHoldingRegisterPDU(register, value);
-
-            //Assert
-            CollectionAssert.AreEqual(expectatedFrame, actualFrame);
-
-        }
+        
 
         [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_incorrect_outOfValue()
+        public void CheckPDUWriteSingle_IncorrectValueIn5Function()
         {
             //Asign
-            int register = 1;
-            int value = 70000;
+            int adress = 1;
+            int value = 200;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingHoldingRegisterPDU(register, value));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.SingleWritingPDU(adress, value, 5));
 
         }
-
-        [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_incorrect_outOfValueBelowZero()
-        {
-            //Asign
-            int register = 1;
-            int value = -10;
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingHoldingRegisterPDU(register, value));
-
-        }
-
-        [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_incorrect_registerBelowZero()
-        {
-            //Asign
-            int register = -13;
-            int value = 20;
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingHoldingRegisterPDU(register, value));
-
-        }
-
-        [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_incorrect_registerOutOfRange()
-        {
-            //Asign
-            int register = 90000;
-            int value = 20;
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingHoldingRegisterPDU(register, value));
-
-        }
-
-        [Test]
-        public void CheckPDUForWriteSingleHoldingRegister_Correct_registerMax()
-        {
-            //Asign
-            int register = 65535;
-            int value = 10;
-            byte[] expectatedFrame = { 6, 0xff, 0xff, 0, 0x0a };
-
-            //Act
-            byte[] actualFrame = ModBusCreator.WritingHoldingRegisterPDU(register, value);
-
-            //Assert
-            CollectionAssert.AreEqual(expectatedFrame, actualFrame);
-        }
-
         //Test for writing multiple registers
         //////////////////////////////////////////////////////////////////////////////////////////////////
         [Test]
@@ -335,7 +285,7 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 16, 0, 1, 0, 5, 10, 0, 13, 0, 33, 0x01, 0x59, 0, 21, 0xfd, 0xe8 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
+            byte[] actualFrame =  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
@@ -351,7 +301,7 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 16, 0, 1, 0, 5, 10, 0, 13, 0, 33, 0, 222, 0, 21, 0, 1 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
+            byte[] actualFrame =  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
@@ -367,7 +317,7 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 16, 0, 1, 0, 5, 10, 0x01, 0x2c, 0x01, 0xc4, 0x1b, 0x58, 0x11, 0xb4, 0x2e, 0xe0 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
+            byte[] actualFrame =  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
@@ -382,7 +332,7 @@ namespace TestModbusTCPIP
             int[] values = { 300, 452, 7000, 4532, 12000 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
         }
 
         [Test]
@@ -394,7 +344,7 @@ namespace TestModbusTCPIP
             int[] values = { 300, 452, 70000, 4532, 120000 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
         }
 
         [Test]
@@ -406,7 +356,7 @@ namespace TestModbusTCPIP
             int[] values = { 300, 452, 70000, 4532, 120000 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
         }
 
         [Test]
@@ -418,7 +368,7 @@ namespace TestModbusTCPIP
             int[] values = { 300, 452, 70000, 4532, 120000 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
         }
 
         [Test]
@@ -430,7 +380,7 @@ namespace TestModbusTCPIP
             int[] values = { 300, 452, 70000, 4532, 120000 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
         }
 
 
@@ -443,7 +393,7 @@ namespace TestModbusTCPIP
             int[] values = { 300, 452, 70000, 4532, 120000 };
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
         }
 
         //Create Header Section of protocol
@@ -457,7 +407,7 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 0, 1, 0, 0, 0, 6, 1 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.CreateMBAPHeader(unitId, length);
+            byte[] actualFrame =  ModBusFrameCreator.CreateMBAPHeader(unitId, length);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
@@ -472,7 +422,7 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 0, 1, 0, 0, 0xff, 0xff, 1 };
 
             //Act
-            byte[] actualFrame = ModBusCreator.CreateMBAPHeader(unitId, length);
+            byte[] actualFrame =  ModBusFrameCreator.CreateMBAPHeader(unitId, length);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
@@ -486,7 +436,7 @@ namespace TestModbusTCPIP
             int length = 65535;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateMBAPHeader(unitId, length));
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.CreateMBAPHeader(unitId, length));
         }
 
         [Test]
@@ -497,7 +447,7 @@ namespace TestModbusTCPIP
             int length = 20;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateMBAPHeader(unitId, length));
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.CreateMBAPHeader(unitId, length));
         }
 
         [Test]
@@ -508,7 +458,7 @@ namespace TestModbusTCPIP
             int length = 20;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateMBAPHeader(unitId, length));
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.CreateMBAPHeader(unitId, length));
         }
 
         [Test]
@@ -519,7 +469,7 @@ namespace TestModbusTCPIP
             int length = -20;
 
             //Act and Assert
-            Assert.Throws<FrameException>(() => ModBusCreator.CreateMBAPHeader(unitId, length));
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.CreateMBAPHeader(unitId, length));
         }
     }
 }
