@@ -10,6 +10,7 @@
             byte[] frame;
             byte[] dataPDU;
             byte[] dataMBAP = new byte[7];
+            int[] temp = new int[dataForFunction[1]];
 
 
             //Selection to create correct data frame to send based on function code
@@ -39,9 +40,13 @@
                     Console.WriteLine("[Frame: function code 6 -> Write Single Holding Register]");
                     dataPDU = SingleWritingPDU(dataForFunction[0], dataForFunction[1], 6);
                     break;
+                case 15:
+                    Console.WriteLine("[Frame: function code 15 -> Write Multiple Coils]");
+                    Array.Copy(dataForFunction, 2, temp, 0, dataForFunction[1]);
+                    dataPDU = MultipleWritingPDU(dataForFunction[0], dataForFunction[1], 15, temp);
+                    break;
                 case 16:
                     Console.WriteLine("[Frame: function code 16 -> Write Holding Registers]");
-                    int[] temp = new int[dataForFunction[1]];
                     Array.Copy(dataForFunction, 2, temp, 0, dataForFunction[1]);
                     dataPDU = MultipleWritingPDU(dataForFunction[0], dataForFunction[1], 16, temp);
                     break;
@@ -60,20 +65,20 @@
         //                                            6 is unit id;
         //                                            7 is function code;
         //                                            8 is length of registers;
-        public static List<int> DecodeModbusFrame(byte[] responseModbusFrame)
-        {
-            if (responseModbusFrame.Length < 7) throw new FrameException("Incorrect Modbus frame. Decode is not possible.");
-            List<int> values = new List<int>();
-            increaseTransactionId();
-            int DataLength = CombineBytes(responseModbusFrame[4], responseModbusFrame[5]);
-            int doneFunction = responseModbusFrame[7];
-            Console.WriteLine();
-            for (int i = 9; i < responseModbusFrame.Length - 1; i += 2)
-            {
-                values.Add(CombineBytes(responseModbusFrame[i], responseModbusFrame[i + 1]));
-            }
-            return values;
-        }
+        //public static List<int> DecodeModbusFrame(byte[] responseModbusFrame)
+        //{
+        //    if (responseModbusFrame.Length < 7) throw new FrameException("Incorrect Modbus frame. Decode is not possible.");
+        //    List<int> values = new List<int>();
+        //    increaseTransactionId();
+        //    int DataLength = CombineBytes(responseModbusFrame[4], responseModbusFrame[5]);
+        //    int doneFunction = responseModbusFrame[7];
+        //    Console.WriteLine();
+        //    for (int i = 9; i < responseModbusFrame.Length - 1; i += 2)
+        //    {
+        //        values.Add(CombineBytes(responseModbusFrame[i], responseModbusFrame[i + 1]));
+        //    }
+        //    return values;
+        //}
 
         //Create Protocol Data Unit For Reading Modbus Frames 
         public static byte[] ReadingPDU(int startAddress, int range, int functionCode)
@@ -147,19 +152,42 @@
                 if(range % 8 == 0)
                 {
                     amountBytesForCoils = (int)(range / 8);
-                } else
+                } 
+                else
                 {
                     amountBytesForCoils = (int)(range / 8) + 1;
                 }
                 data = new byte[amountBytesForCoils + 6];
                 data[5] = Convert.ToByte(amountBytesForCoils);
+                string tempBinary = "";
+                for(int i = 0; i < range; i++)
+                {
+                    if (values[i] != 1 && values[i] != 0) throw new FrameException("Coil must be On/Off [1/0] only.");
+                    tempBinary += values[i].ToString();
+                }
+                for(int i = 0; i < amountBytesForCoils; i++)
+                {
+                    string reverseBinary;
+                    if (i == amountBytesForCoils - 1) reverseBinary = new string(tempBinary.Substring(i * 8).Reverse().ToArray());
+                    else reverseBinary = new string(tempBinary.Substring(i * 8, 8).Reverse().ToArray());
+                    data[i + 6] = Convert.ToByte(reverseBinary, 2);
+                }
             } 
             else
             {
                 if (range > 123) throw new FrameException("Range of write registers must be max 123");
                 data = new byte[2 * range + 6];
+                
                 //Correct amount of bytes for registers values 
                 data[5] = Convert.ToByte(range * 2);
+
+                //Convert register values to write
+                for (int i = 6, j = 0; i < 2 * range + 5; i += 2, j++)
+                {
+                    temp = MakeModbusBytesConvention(values[j]);
+                    data[i] = temp[0];
+                    data[i + 1] = temp[1];
+                }
             }
 
             //Convert Function code to bytes
@@ -175,14 +203,6 @@
             temp = MakeModbusBytesConvention(range);
             data[3] = temp[0];
             data[4] = temp[1];
-
-            //Convert register values to write
-            for (int i = 6, j = 0; i < 2 * range + 5; i += 2, j++)
-            {
-                temp = MakeModbusBytesConvention(values[j]);
-                data[i] = temp[0];
-                data[i + 1] = temp[1];
-            }
 
             return data;
         }
@@ -239,16 +259,6 @@
                 throw new FrameException("Incorrect value, out of range, it should be in 0...65535. Modbus frame support max 2 bytes range of unsigned int.");
             }
             return result;
-        }
-
-        //Convert bytes in correct way to restore values
-        private static int CombineBytes(byte firstByte, byte secondByte)
-        {
-            if (firstByte == 0x00)
-            {
-                return secondByte;
-            }
-            return firstByte << 8 | secondByte;
         }
 
         //Make correct Transaction id for slave 

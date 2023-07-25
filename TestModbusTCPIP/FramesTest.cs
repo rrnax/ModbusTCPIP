@@ -1,3 +1,5 @@
+using Newtonsoft.Json.Linq;
+
 namespace TestModbusTCPIP
 {
     public class ModbusFrameTests
@@ -119,25 +121,29 @@ namespace TestModbusTCPIP
         }
 
         [Test]
-        public void CheckBadScenarioForCase16()
+        public void CheckCase15()
         {
             //Asign
-            int functionId = 16;
+            int functionId = 15;
             int unitId = 1;
-            int[] sampleData = { 1, 2, 70000, 333 };
+            int[] sampleData = { 1, 24, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1 };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 10, 1, 15, 0, 1, 0, 24, 3, 0x4d, 0x7F, 0xe0 };
 
-            //Act with Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData));
+            //Act
+            byte[] actualFrame = ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
+
+            //Assert
+            CollectionAssert.AreEqual(expectedFrame, actualFrame);
         }
 
         [Test]
-        public void CheckGoodScenarioForCase16()
+        public void CheckCase16()
         {
             //Asign
             int functionId = 16;
             int unitId = 1;
             int[] sampleData = { 1, 2, 300, 21 };
-            byte[] expectedFrame = { 0, 1, 0, 0, 0, 11, 1, 16, 0, 1, 0, 2, 4, 0x01, 0x2c, 0, 0x15 };
+            byte[] expectedFrame = { 0, 0, 0, 0, 0, 11, 1, 16, 0, 1, 0, 2, 4, 0x01, 0x2c, 0, 0x15 };
 
             //Act
             byte[] actualFrame =  ModBusFrameCreator.CreateFrame(unitId, functionId, sampleData);
@@ -145,33 +151,7 @@ namespace TestModbusTCPIP
             //Assert
             CollectionAssert.AreEqual(expectedFrame, actualFrame);
         }
-        //Decode Modbus Frame
-        ////////////////////////////////////////////////////////////////////////////////////////////////////
-        [Test]
-        public void CheckDecode_CorrectFrame()
-        {
-            //Asign
-            byte[] frame = { 0, 0, 0, 0, 0, 13, 1, 3, 10, 0x01, 0x16, 0, 0x21, 0, 0x64, 0x27, 0x24, 0, 0x63 };
-            List<int> expected = new List<int> { 278, 33, 100, 10020, 99 };
-
-            //Act
-            List<int> result =  ModBusFrameCreator.DecodeModbusFrame(frame);
-
-            //Asserts
-            CollectionAssert.AreEqual(expected, result);
-        }
-
-        [Test]
-        public void CheckDecode_InCorrectFrame()
-        {
-            //Asign
-            byte[] frame = { 0, 0, 0, 0, 0, 13 };
-            List<int> expected = new List<int> { 278, 33, 100, 10020, 99 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.DecodeModbusFrame(frame));
-        }
-
+      
         //PDU for Reading
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         [Test]
@@ -276,23 +256,87 @@ namespace TestModbusTCPIP
         //Test for writing multiple registers
         //////////////////////////////////////////////////////////////////////////////////////////////////
         [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_Correct_difrretSizeOfbytes()
+        public void CheckPDUForWriteMultiple_15Function()
         {
             //Asign
-            int start = 1;
-            int range = 5;
-            int[] values = { 13, 33, 345, 21, 65000 };
-            byte[] expectatedFrame = { 16, 0, 1, 0, 5, 10, 0, 13, 0, 33, 0x01, 0x59, 0, 21, 0xfd, 0xe8 };
+            int start = 27;
+            int range = 9;
+            int[] values = { 1, 0, 1, 1, 0, 0, 1, 0 , 1};
+            byte[] expectatedFrame = { 15, 0, 0x1b, 0, 9, 2, 0x4d, 0x01};
 
             //Act
-            byte[] actualFrame =  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
+            byte[] actualFrame = ModBusFrameCreator.MultipleWritingPDU(start, range, 15, values);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
         }
 
         [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_Correct_lowBytesOnly()
+        public void CheckPDUForWriteMultiple_15Function24Coils()
+        {
+            //Asign
+            int start = 0;
+            int range = 24;
+            int[] values = { 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+            byte[] expectatedFrame = { 15, 0, 0, 0, 24, 3, 0x4d, 0x7F, 0xe0 };
+
+            //Act
+            byte[] actualFrame = ModBusFrameCreator.MultipleWritingPDU(start, range, 15, values);
+
+            //Assert
+            CollectionAssert.AreEqual(expectatedFrame, actualFrame);
+        }
+
+        [Test]
+        public void CheckPDUForWriteMultiple_NotSameLenghts()
+        {
+            //Asign
+            int start = 27;
+            int range = 9;
+            int[] values = { 1, 0, 1, 1, 0, 0, 1, 0, 1, 1 };
+
+            //Act and Assert
+            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.MultipleWritingPDU(start, range, 16, values));
+        }
+
+        [Test]
+        public void CheckPDUForWriteMultiple_InvalidCoilsRange()
+        {
+            //Asign
+            int start = 27;
+            int range = 2000;
+            int[] values = new int[2000];
+
+            //Act and Assert
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.MultipleWritingPDU(start, range, 15, values));
+        }
+
+        [Test]
+        public void CheckPDUForWriteMultiple_InvalidCoilValue()
+        {
+            //Asign
+            int start = 27;
+            int range = 9;
+            int[] values = { 1, 0, 1, 1, 0, 0, 1, 0, 12 };
+
+            //Act and Assert
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.MultipleWritingPDU(start, range, 15, values));
+        }
+
+        [Test]
+        public void CheckPDUForWriteMultiple_InvalidRegisterRange()
+        {
+            //Asign
+            int start = 27;
+            int range = 125;
+            int[] values = new int[125];
+
+            //Act and Assert
+            Assert.Throws<FrameException>(() => ModBusFrameCreator.MultipleWritingPDU(start, range, 16, values));
+        }
+
+        [Test]
+        public void CheckPDUForWriteMultiple_lowBytesOnlyin16()
         {
             //Asign
             int start = 1;
@@ -301,7 +345,7 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 16, 0, 1, 0, 5, 10, 0, 13, 0, 33, 0, 222, 0, 21, 0, 1 };
 
             //Act
-            byte[] actualFrame =  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
+            byte[] actualFrame = ModBusFrameCreator.MultipleWritingPDU(start,range,16,values);
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
@@ -317,84 +361,13 @@ namespace TestModbusTCPIP
             byte[] expectatedFrame = { 16, 0, 1, 0, 5, 10, 0x01, 0x2c, 0x01, 0xc4, 0x1b, 0x58, 0x11, 0xb4, 0x2e, 0xe0 };
 
             //Act
-            byte[] actualFrame =  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values);
+            byte[] actualFrame = ModBusFrameCreator.MultipleWritingPDU(start,range,16,values);  
 
             //Assert
             CollectionAssert.AreEqual(expectatedFrame, actualFrame);
         }
 
-        [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_IncorrrectLengths()
-        {
-            //Asign
-            int start = 1;
-            int range = 7;
-            int[] values = { 300, 452, 7000, 4532, 12000 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
-        }
-
-        [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_IncorrrectValuesOutOfRange()
-        {
-            //Asign
-            int start = 1;
-            int range = 5;
-            int[] values = { 300, 452, 70000, 4532, 120000 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
-        }
-
-        [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_IncorrrectRegister()
-        {
-            //Asign
-            int start = -122;
-            int range = 5;
-            int[] values = { 300, 452, 70000, 4532, 120000 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
-        }
-
-        [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_IncorrrectRegister2()
-        {
-            //Asign
-            int start = 122122;
-            int range = 5;
-            int[] values = { 300, 452, 70000, 4532, 120000 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
-        }
-
-        [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_IncorrrectRange()
-        {
-            //Asign
-            int start = 1;
-            int range = 222225;
-            int[] values = { 300, 452, 70000, 4532, 120000 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
-        }
-
-
-        [Test]
-        public void CheckPDUForWriteMultipleHoldingRegister_IncorrrectRange2()
-        {
-            //Asign
-            int start = 1;
-            int range = -222;
-            int[] values = { 300, 452, 70000, 4532, 120000 };
-
-            //Act and Assert
-            Assert.Throws<FrameException>(() =>  ModBusFrameCreator.WritingMultipleHoldingRegistersPDU(start, range, values));
-        }
+       
 
         //Create Header Section of protocol
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
