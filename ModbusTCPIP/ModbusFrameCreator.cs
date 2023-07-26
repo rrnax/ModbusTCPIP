@@ -17,36 +17,28 @@
             switch (functionId)
             {
                 case 1:
-                    Console.WriteLine("[Frame: function code 1 -> Read Coils]");
                     dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 1);
                     break;
                 case 2:
-                    Console.WriteLine("[Frame: function code 2 -> Read Discrete Inputs]");
                     dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 2);
                     break;
                 case 3:
-                    Console.WriteLine("[Frame: function code 3 -> Read Holding Registers]");
                     dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 3);
                     break;
                 case 4:
-                    Console.WriteLine("[Frame: function code 4 -> Read Input Registers]");
                     dataPDU = ReadingPDU(dataForFunction[0], dataForFunction[1], 4);
                     break;
                 case 5:
-                    Console.WriteLine("[Frame: function code 5 -> Write Single Coil]");
                     dataPDU = SingleWritingPDU(dataForFunction[0], dataForFunction[1], 5);
                     break;
                 case 6:
-                    Console.WriteLine("[Frame: function code 6 -> Write Single Holding Register]");
                     dataPDU = SingleWritingPDU(dataForFunction[0], dataForFunction[1], 6);
                     break;
                 case 15:
-                    Console.WriteLine("[Frame: function code 15 -> Write Multiple Coils]");
                     Array.Copy(dataForFunction, 2, temp, 0, dataForFunction[1]);
                     dataPDU = MultipleWritingPDU(dataForFunction[0], dataForFunction[1], 15, temp);
                     break;
                 case 16:
-                    Console.WriteLine("[Frame: function code 16 -> Write Holding Registers]");
                     Array.Copy(dataForFunction, 2, temp, 0, dataForFunction[1]);
                     dataPDU = MultipleWritingPDU(dataForFunction[0], dataForFunction[1], 16, temp);
                     break;
@@ -57,28 +49,6 @@
             frame = dataMBAP.Concat(dataPDU).ToArray();
             return frame;
         }
-
-        //Decode Modbus Frame from given data
-        //We start iterate over values from 9 because 0,1 is Transaction Id;
-        //                                            2,3 is Protocol Id;
-        //                                            4,5 is bytes length;
-        //                                            6 is unit id;
-        //                                            7 is function code;
-        //                                            8 is length of registers;
-        //public static List<int> DecodeModbusFrame(byte[] responseModbusFrame)
-        //{
-        //    if (responseModbusFrame.Length < 7) throw new FrameException("Incorrect Modbus frame. Decode is not possible.");
-        //    List<int> values = new List<int>();
-        //    increaseTransactionId();
-        //    int DataLength = CombineBytes(responseModbusFrame[4], responseModbusFrame[5]);
-        //    int doneFunction = responseModbusFrame[7];
-        //    Console.WriteLine();
-        //    for (int i = 9; i < responseModbusFrame.Length - 1; i += 2)
-        //    {
-        //        values.Add(CombineBytes(responseModbusFrame[i], responseModbusFrame[i + 1]));
-        //    }
-        //    return values;
-        //}
 
         //Create Protocol Data Unit For Reading Modbus Frames 
         public static byte[] ReadingPDU(int startAddress, int range, int functionCode)
@@ -262,7 +232,7 @@
         }
 
         //Make correct Transaction id for slave 
-        private static void increaseTransactionId()
+        public static void increaseTransactionId()
         {
             if (transactionId > 65535)
             {

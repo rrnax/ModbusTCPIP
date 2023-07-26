@@ -74,7 +74,7 @@ namespace ModbusTCPIP
         }
 
         //Modbus communication with slave
-        public byte[] ReadCoils(int firstCoilAddress, int rangeOfCoils)
+        public List<bool> ReadCoils(int firstCoilAddress, int rangeOfCoils)
         {
             if (this.connected) 
             {
@@ -89,7 +89,8 @@ namespace ModbusTCPIP
                     this.slaveSocket.Send(frame);
                     int bytesRecived = this.slaveSocket.Receive(response);
                     Array.Resize(ref response, bytesRecived);
-                    return response;
+                    ModBusFrameCreator.increaseTransactionId();
+                    return new ModbusFrameObject(response).DecodeBits();
                 }
                 catch (Exception ex)
                 {
@@ -100,6 +101,100 @@ namespace ModbusTCPIP
             {
                 return null;
             }
+        }
+
+        public List<bool> ReadDiscreteInputs(int firstInputAddress, int rangeOfDiscreteInputs)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2];
+                values[0] = firstInputAddress;
+                values[1] = rangeOfDiscreteInputs;
+
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 2, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    return new ModbusFrameObject(response).DecodeBits();
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public List<int> ReadMultipleHoldingRegisters(int firstRegisterAddress, int rangeOfRegisters)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2];
+                values[0] = firstRegisterAddress;
+                values[1] = rangeOfRegisters;
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 3, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    return new ModbusFrameObject(response).DecodeRegisters();
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public List<int> ReadInputRegisters(int firstRegisterAddress, int rangeOfRegisters)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2];
+                values[0] = firstRegisterAddress;
+                values[1] = rangeOfRegisters;
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 4, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    return new ModbusFrameObject(response).DecodeRegisters();
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        //Utility
+        public void ReadFrame(byte[] frame)
+        {
+            foreach (byte b in frame)
+            {
+                Console.Write(b.ToString("x2") + " ");
+            }
+            Console.WriteLine();
         }
 
 
