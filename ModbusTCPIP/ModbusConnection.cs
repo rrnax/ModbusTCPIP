@@ -9,7 +9,7 @@ namespace ModbusTCPIP
         private int slavePort { get; }
         private Socket slaveSocket { get; set; }
         private int slaveUnitId { get; set; }   
-        private bool connected;
+        private bool connected { get; set; }    
 
 
         //Constructors
@@ -154,11 +154,9 @@ namespace ModbusTCPIP
                     return null;
                 }
             }
-            else
-            {
-                return null;
-            }
+            else return null;
         }
+
         public List<int> ReadInputRegisters(int firstRegisterAddress, int rangeOfRegisters)
         {
             if (this.connected)
@@ -181,11 +179,123 @@ namespace ModbusTCPIP
                     return null;
                 }
             }
-            else
-            {
-                return null;
-            }
+            else return null;
         }
+
+        public bool WriteSingleCoil(int coilAddress, int coilValue)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2];
+                values[0] = coilAddress;
+                values[1] = coilValue;
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 5, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    return frame.SequenceEqual(response);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+            else return false;
+        }
+
+        public bool WriteSingleHoldingRegister(int holdingRegisterAddress, int holdingRegisterValue)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2];
+                values[0] = holdingRegisterAddress;
+                values[1] = holdingRegisterValue;
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 6, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    return frame.SequenceEqual(response);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+            else return false;
+        }
+
+        //Coil value can be only 0 = ON or 1 = OFF
+        public bool WriteMultipleCoils(int startCoilAddress, int rangeOfCoils, int[] coilsValues)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2 + coilsValues.Length];
+                values[0] = startCoilAddress;
+                values[1] = rangeOfCoils;
+                for(int i = 2; i < values.Length; i++)
+                {
+                    values[i] = coilsValues[i - 2];
+                }
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 15, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    Array.Resize(ref frame, 12);
+                    frame[5] = 0x06;
+                    return frame.SequenceEqual(response);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+            else return false;
+        }
+
+        public bool WriteMultipleHoldingRegisters(int startRegisterAddress, int rangeOfRegisters, int[] registersValues)
+        {
+            if (this.connected)
+            {
+                byte[] response = new byte[1024];
+                int[] values = new int[2 + registersValues.Length];
+                values[0] = startRegisterAddress;
+                values[1] = rangeOfRegisters;
+                for (int i = 2; i < values.Length; i++)
+                {
+                    values[i] = registersValues[i - 2];
+                }
+                try
+                {
+                    byte[] frame = ModBusFrameCreator.CreateFrame(this.slaveUnitId, 16, values);
+                    this.slaveSocket.Send(frame);
+                    int bytesRecived = this.slaveSocket.Receive(response);
+                    Array.Resize(ref response, bytesRecived);
+                    ModBusFrameCreator.increaseTransactionId();
+                    Array.Resize(ref frame, 12);
+                    frame[5] = 0x06;
+                    return frame.SequenceEqual(response);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+            else return false;
+        }
+
+
 
         //Utility
         public void ReadFrame(byte[] frame)

@@ -86,6 +86,7 @@
         //Create Protocol Data Unit for write single holding register
         public static byte[] SingleWritingPDU(int address, int value, int functionCode)
         {
+            //Write coli is 0 for OFF and 65280 for ON all antoher values are illegal in Modbus protocol
             if (functionCode == 5 && (value != 65280 && value != 0)) throw new FrameException("Only turn on or off is permited on coil.");
             byte[] data = new byte[5];
             byte[] temp;

@@ -377,7 +377,7 @@ namespace TestModbusTCPIP
             //Asign
             int unitId = 1;
             int length = 5;
-            byte[] expectatedFrame = { 0, 1, 0, 0, 0, 6, 1 };
+            byte[] expectatedFrame = { 0, 0, 0, 0, 0, 6, 1 };
 
             //Act
             byte[] actualFrame =  ModBusFrameCreator.CreateMBAPHeader(unitId, length);
@@ -392,7 +392,7 @@ namespace TestModbusTCPIP
             //Asign
             int unitId = 1;
             int length = 65534;
-            byte[] expectatedFrame = { 0, 1, 0, 0, 0xff, 0xff, 1 };
+            byte[] expectatedFrame = { 0, 0, 0, 0, 0xff, 0xff, 1 };
 
             //Act
             byte[] actualFrame =  ModBusFrameCreator.CreateMBAPHeader(unitId, length);
