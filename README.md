@@ -111,3 +111,11 @@ int[] parametrs = { 3, 10 };
 byte[] frame = ModBusFrameCreator.CreateFrame(unitId, function, parametrs);
 List<int> decoded = new ModbusFrameObject(frame).DecodeRegisters();
 ```
+
+## Tests
+Unit test are available in TestModbusTCPIP.
+Code is coverage by tests about 80%.
+
+## License
+ModbusTCPIP is released under the MIT license.
+
