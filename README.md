@@ -1,7 +1,7 @@
 # ModbusTCP/IP
 
 ![Static Badge](https://img.shields.io/badge/release-v1.0.0-green)
-![Static Badge](https://img.shields.io/badge/NuGet-v1.0.0-voilet)
+![Static Badge](https://img.shields.io/badge/NuGet-ModbusTCPIP-purple)
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://choosealicense.com/licenses/mit/)
 
 Library writed in C# about Modbus protocole via TCP/IP connection.
