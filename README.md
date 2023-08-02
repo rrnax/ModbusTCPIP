@@ -33,3 +33,81 @@ Planning in the future:
 * Implement less popular functons (8,11,14,17,22,23,43)
 * Make interface for user's own functions
 * Make Modbus master desktop application
+
+## Instalation
+
+NuGet package with library:
+```shell
+$ dotnet add package ModbusTCPIP
+```
+or version:
+```shell
+$ dotnet add package ModbusTCPIP --version 1.0.0
+```
+
+You can also take DLL file from code and add to dependencies or download all code from github.
+
+## How to use
+
+Connect with slave and read holding registers:
+```C#
+using ModbusTCPIP;
+
+string slaveIP = "192.167.8.11";
+int slavePort = 502;
+ModbusConnection mySlave = new ModbusConnection(slaveIP, slavePort);
+int registerAddress = 1;
+int range = 20;
+
+mySlave.Connect();
+List<int> slaveRegisters = mySlave.ReadMultipleHoldingRegisters(registerAddress, range);
+mySlave.Disconnect();
+```
+
+Connect with slave write and then read holding Register values:
+```C#
+using ModbusTCPIP;
+
+string slaveIP = "192.167.8.11";
+int slavePort = 502;
+ModbusConnection mySlave = new ModbusConnection(slaveIP, slavePort);
+int registerAddress = 1;
+int range = 7;
+int[] values = { 122, 1111, 334, 1, 7688, 21000, 50 };
+
+mySlave.Connect();
+mySlave.WriteMultipleHoldingRegisters(registerAddress, range, values);
+List<int> slaveRegisters = mySlave.ReadMultipleHoldingRegisters(registerAddress, range);
+mySlave.Disconnect();
+```
+
+Create frame for communication:
+```C#
+using ModbusTCPIP;
+
+int unitId = 1;
+int function = 3;
+int[] parametrs = { 3, 10 };
+int[] values = { 122, 1111, 334, 1, 7688, 21000, 50 };
+
+//Generally
+byte[] frame = ModBusFrameCreator.CreateFrame(unitId, function, parametrs);
+
+//Partly
+byte[] header = ModBusFrameCreator.CreateMBAPHeader(unitId, 2);
+byte[] pduR = ModBusFrameCreator.ReadingPDU(parametrs[0], parametrs[1], function); //For read functions
+byte[] pduW = ModBusFrameCreator.MultipleWritingPDU(parametrs[0], parametrs[1], function, values); //For write multiple, but you can also write Single
+frame = header.Concat(pduR).ToArray(); //Concat at the end
+```
+
+Decode frame:
+```C#
+using ModbusTCPIP;
+
+int unitId = 1;
+int function = 3;
+int[] parametrs = { 3, 10 };
+
+byte[] frame = ModBusFrameCreator.CreateFrame(unitId, function, parametrs);
+List<int> decoded = new ModbusFrameObject(frame).DecodeRegisters();
+```
