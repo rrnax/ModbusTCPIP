@@ -1,7 +1,7 @@
 # ModbusTCP/IP
 
 ![Static Badge](https://img.shields.io/badge/release-v1.0-green)
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://choosealicense.com/licenses/mit/)
 
 Library writed in C# about Modbus protocole via TCP/IP connection.
 This library allows connection with slave by Sockets and communication with this slave by Modbus protocol using function's codes in Modbus frames. Also project gives classes to create and decode Modbus frames with error handling. Library inlcudes unit tests for better understanding of classes and their methods. Project currently are implemented these function codes from modbus:
