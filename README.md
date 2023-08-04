@@ -1,3 +1,5 @@
+![Logo](https://github.com/rrnax/ModbusTCPIP/blob/main/logo_mb.jpg?raw=true)
+
 # ModbusTCP/IP
 
 ![Static Badge](https://img.shields.io/badge/release-v1.0.0-green)
