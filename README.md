@@ -39,7 +39,7 @@ Planning in the future:
 
 ## Instalation
 
-NuGet package with library:
+NuGet package with library(https://www.nuget.org/packages/ModbusTCPIP/1.0.0):
 ```shell
 $ dotnet add package ModbusTCPIP
 ```
