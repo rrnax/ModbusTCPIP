@@ -48,6 +48,9 @@ $ dotnet add package ModbusTCPIP --version 1.0.0
 
 You can also take DLL file from code and add to dependencies or download all code from github.
 
+## Documentation
+Currently it is available under this link: https://rrnax.github.io/ModbusTCPIP/
+
 ## How to use
 
 Connect with slave and read holding registers:
